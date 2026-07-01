@@ -1,0 +1,108 @@
+spring:
+  application:
+    name: backend-solicitations
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:default}
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: false
+    serialization:
+      write-dates-as-timestamps: false
+    time-zone: America/Sao_Paulo
+
+---
+spring:
+  config:
+    activate:
+      on-profile: default
+  datasource:
+    url: jdbc:postgresql://localhost:5432/solicitations_db
+    username: admin
+    password: admin123
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  elasticsearch:
+    uris: http://localhost:9200
+    connection-timeout: 5s
+    socket-timeout: 30s
+  cache:
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=24h
+    type: caffeine
+
+jwt:
+  secret: 5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437
+  expiration: 86400000
+
+logging:
+  level:
+    com.challenge.backend: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: jdbc:postgresql://postgres:5432/solicitations_db
+    username: admin
+    password: admin123
+  elasticsearch:
+    uris: http://elasticsearch:9200
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  elasticsearch:
+    uris: http://localhost:9201
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      viaCep:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        permitted-number-of-calls-in-half-open-state: 3
+        wait-duration-in-open-state: 10s
+        minimum-number-of-calls: 5
+  retry:
+    instances:
+      viaCep:
+        max-attempts: 3
+        wait-duration: 1s

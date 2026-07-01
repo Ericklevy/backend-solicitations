@@ -1,0 +1,39 @@
+# Compiled
+target/
+*.class
+
+# IDEs and Editors
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# Logs
+logs/
+*.log
+
+# OS temporary files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Docker
+*.pid
+*.pid.lock
+
+# Configuration/Secrets (Application specific)
+src/main/resources/application-local.yml
+src/main/resources/application-*.yml
+!src/main/resources/application.yml
+!src/main/resources/application-docker.yml
+!src/main/resources/application-test.yml
+
+# Maven Wrapper
+.mvn/
+mvnw
+mvnw.cmd
+
+# Test output
+test-output/
