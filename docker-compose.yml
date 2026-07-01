@@ -1,0 +1,66 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: challenge-postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: solicitations_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - challenge-network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: challenge-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9201:9200"
+      - "9301:9300"
+    volumes:
+      - elastic_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - challenge-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: challenge-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    ports:
+      - "8081:8080"
+    networks:
+      - challenge-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  elastic_data:
+
+networks:
+  challenge-network:
+    driver: bridge
