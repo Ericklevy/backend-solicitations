@@ -36,6 +36,7 @@ public class UserEntity {
     private Role role;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean enabled = true;
 
     @Column(nullable = false, updatable = false)
