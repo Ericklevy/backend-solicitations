@@ -16,10 +16,14 @@ spring:
     activate:
       on-profile: default
   datasource:
-    url: jdbc:postgresql://localhost:5433/solicitations_db    # ← MUDOU: porta 5433
+    url: jdbc:postgresql://localhost:5433/solicitations_db
     username: admin
     password: admin123
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
   jpa:
     hibernate:
       ddl-auto: update
@@ -28,8 +32,12 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
   elasticsearch:
-    uris: http://localhost:9201          # ← MUDOU: porta 9201
+    uris: http://localhost:9201
     connection-timeout: 5s
     socket-timeout: 30s
   cache:
@@ -46,12 +54,18 @@ logging:
     com.challenge.backend: DEBUG
     org.springframework.web: INFO
     org.hibernate.SQL: DEBUG
+    org.springframework.security: DEBUG
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info,metrics,prometheus
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
 
 springdoc:
   api-docs:
@@ -60,6 +74,25 @@ springdoc:
     path: /swagger-ui.html
     operations-sorter: method
     tags-sorter: alpha
+    try-it-out-enabled: true
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      viaCep:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        permitted-number-of-calls-in-half-open-state: 3
+        wait-duration-in-open-state: 10s
+        minimum-number-of-calls: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+  retry:
+    instances:
+      viaCep:
+        max-attempts: 3
+        wait-duration: 1s
+        retry-exceptions:
+          - java.lang.RuntimeException
 
 ---
 spring:
@@ -67,11 +100,30 @@ spring:
     activate:
       on-profile: docker
   datasource:
-    url: jdbc:postgresql://postgres:5432/solicitations_db   # ← DENTRO do container, porta 5432
+    url: jdbc:postgresql://postgres:5432/solicitations_db
     username: admin
     password: admin123
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   elasticsearch:
-    uris: http://elasticsearch:9200      # ← DENTRO do container, porta 9200
+    uris: http://elasticsearch:9200
+    connection-timeout: 5s
+    socket-timeout: 30s
+  cache:
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=24h
+    type: caffeine
+
+logging:
+  level:
+    com.challenge.backend: INFO
+    org.springframework.web: WARN
 
 ---
 spring:
@@ -86,23 +138,18 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+    show-sql: true
     properties:
       hibernate:
+        format_sql: true
         dialect: org.hibernate.dialect.H2Dialect
   elasticsearch:
     uris: http://localhost:9201
+    connection-timeout: 5s
+    socket-timeout: 30s
 
-resilience4j:
-  circuitbreaker:
-    instances:
-      viaCep:
-        sliding-window-size: 10
-        failure-rate-threshold: 50
-        permitted-number-of-calls-in-half-open-state: 3
-        wait-duration-in-open-state: 10s
-        minimum-number-of-calls: 5
-  retry:
-    instances:
-      viaCep:
-        max-attempts: 3
-        wait-duration: 1s
+logging:
+  level:
+    com.challenge.backend: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
