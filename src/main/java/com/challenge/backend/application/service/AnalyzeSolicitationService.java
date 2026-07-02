@@ -9,6 +9,8 @@ import com.challenge.backend.domain.repository.SolicitationRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.challenge.backend.interfaces.exception.BusinessException;
+import com.challenge.backend.interfaces.exception.NotFoundException;
 
 @Service
 @RequiredArgsConstructor
@@ -22,11 +24,11 @@ public class AnalyzeSolicitationService implements AnalyzeSolicitationUseCase {
     @Transactional
     public Solicitation startAnalysis(Long solicitationId, Long analystId) {
         Solicitation solicitation = repository.findById(solicitationId)
-                .orElseThrow(() -> new RuntimeException("Solicitation not found"));
+                .orElseThrow(() -> new NotFoundException("Solicitation not found"));
 
         Result<Void> result = solicitation.startAnalysis(analystId);
         if (result.isFailure()) {
-            throw new RuntimeException(result.getErrors().get(0).getMessage());
+            throw new BusinessException(result.getErrors().get(0).getMessage());
         }
 
         Solicitation saved = repository.save(solicitation);
@@ -40,11 +42,11 @@ public class AnalyzeSolicitationService implements AnalyzeSolicitationUseCase {
     @Transactional
     public Solicitation decide(Long solicitationId, Long analystId, boolean approve, String comment) {
         Solicitation solicitation = repository.findById(solicitationId)
-                .orElseThrow(() -> new RuntimeException("Solicitation not found"));
+                .orElseThrow(() -> new NotFoundException("Solicitation not found"));
 
         Result<Void> result = solicitation.decide(approve, analystId, comment);
         if (result.isFailure()) {
-            throw new RuntimeException(result.getErrors().get(0).getMessage());
+            throw new BusinessException(result.getErrors().get(0).getMessage());
         }
 
         Solicitation saved = repository.save(solicitation);

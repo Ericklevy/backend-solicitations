@@ -1,7 +1,7 @@
 package com.challenge.backend.infrastructure.audit.aspect;
 
 import com.challenge.backend.infrastructure.audit.annotation.Auditable;
-import com.challenge.backend.infrastructure.audit.service.AuditService;
+import com.challenge.backend.application.port.out.AuditPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -21,7 +21,7 @@ import java.util.Map;
 @Slf4j
 public class AuditAspect {
 
-    private final AuditService auditService;
+    private final AuditPort auditService;
 
     @Around("@annotation(auditable)")
     public Object audit(ProceedingJoinPoint joinPoint, Auditable auditable) throws Throwable {

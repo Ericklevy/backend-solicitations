@@ -19,12 +19,20 @@ public class SecurityAdapter implements SecurityPort, UserDetailsService {
     private final JwtService jwtService;
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        User user;
+        try {
+            Long id = Long.parseLong(username);
+            user = userRepository.findById(id)
+                    .orElseGet(() -> userRepository.findByEmail(username)
+                            .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username)));
+        } catch (NumberFormatException e) {
+            user = userRepository.findByEmail(username)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        }
 
         return org.springframework.security.core.userdetails.User
-                .withUsername(user.getEmail())
+                .withUsername(user.getId().toString())
                 .password(user.getPasswordHash())
                 .roles(user.getRole().name())
                 .build();
@@ -32,7 +40,7 @@ public class SecurityAdapter implements SecurityPort, UserDetailsService {
 
     @Override
     public String generateToken(User user) {
-        return jwtService.generateToken(loadUserByUsername(user.getEmail()));
+        return jwtService.generateToken(loadUserByUsername(user.getId().toString()));
     }
 
     @Override

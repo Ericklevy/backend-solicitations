@@ -32,6 +32,8 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: challenge
+        hbm2ddl.create_namespaces: true
         jdbc:
           batch_size: 20
         order_inserts: true
@@ -65,7 +67,6 @@ management:
     metrics:
       export:
         enabled: true
-
 
 springdoc:
   api-docs:
@@ -111,6 +112,8 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: challenge
+        hbm2ddl.create_namespaces: true
   elasticsearch:
     uris: http://elasticsearch:9200
     connection-timeout: 5s
@@ -143,6 +146,8 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.H2Dialect
+        default_schema: challenge
+        hbm2ddl.create_namespaces: true
   elasticsearch:
     uris: http://localhost:9201
     connection-timeout: 5s

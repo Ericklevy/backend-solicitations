@@ -1,5 +1,5 @@
-# Usando Eclipse Temurin (sucessor do OpenJDK)
-FROM eclipse-temurin:21-jdk-alpine AS build
+# Usando imagem oficial do Maven com Eclipse Temurin (sucessor do OpenJDK)
+FROM maven:3.9-eclipse-temurin-21-alpine AS build
 
 WORKDIR /app
 

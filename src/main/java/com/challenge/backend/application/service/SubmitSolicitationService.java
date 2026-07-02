@@ -9,6 +9,9 @@ import com.challenge.backend.domain.repository.SolicitationRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.challenge.backend.interfaces.exception.BusinessException;
+import com.challenge.backend.interfaces.exception.NotFoundException;
+import com.challenge.backend.interfaces.exception.UnauthorizedException;
 
 @Service
 @RequiredArgsConstructor
@@ -22,15 +25,15 @@ public class SubmitSolicitationService implements SubmitSolicitationUseCase {
     @Transactional
     public Solicitation execute(Long solicitationId, Long clientId) {
         Solicitation solicitation = repository.findById(solicitationId)
-                .orElseThrow(() -> new RuntimeException("Solicitation not found"));
+                .orElseThrow(() -> new NotFoundException("Solicitation not found"));
 
         if (!solicitation.getClientId().equals(clientId)) {
-            throw new RuntimeException("You can only submit your own solicitations");
+            throw new UnauthorizedException("You can only submit your own solicitations");
         }
 
         Result<Void> result = solicitation.submit();
         if (result.isFailure()) {
-            throw new RuntimeException("Validation failed: " + result.getErrors());
+            throw new BusinessException("Validation failed: " + result.getErrors());
         }
 
         Solicitation saved = repository.save(solicitation);
