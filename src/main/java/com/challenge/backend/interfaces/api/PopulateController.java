@@ -13,11 +13,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 @RestController
 @RequestMapping("/api/populate")
 @RequiredArgsConstructor
 @Profile("!prod")
 @Tag(name = "Populate", description = "Populate system with sample data (dev only)")
+@SecurityRequirement(name = "bearer-jwt")
 public class PopulateController {
 
     private final PopulateSystemUseCase populateSystemUseCase;

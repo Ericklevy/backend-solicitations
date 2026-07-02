@@ -41,16 +41,8 @@ import org.springframework.context.annotation.Configuration;
         ),
         servers = {
                 @Server(
-                        url = "http://localhost:8080",
-                        description = "Local Development"
-                ),
-                @Server(
-                        url = "http://localhost:8081",
-                        description = "Docker Container"
-                ),
-                @Server(
-                        url = "https://api.example.com",
-                        description = "Production"
+                        url = "/",
+                        description = "Default Server URL"
                 )
         }
 )

@@ -22,24 +22,28 @@ public class AdminDataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        String adminEmail = "admin@system.com";
-        Optional<User> existingAdmin = userRepository.findByEmail(adminEmail);
+        try {
+            String adminEmail = "admin@system.com";
+            Optional<User> existingAdmin = userRepository.findByEmail(adminEmail);
 
-        if (existingAdmin.isEmpty()) {
-            log.info("🚀 Seeding initial ADMIN user...");
-            User admin = User.builder()
-                    .name("Administrator")
-                    .email(adminEmail)
-                    .passwordHash(securityPort.encodePassword("Admin@123"))
-                    .role(Role.ADMIN)
-                    .enabled(true)
-                    .createdAt(Instant.now())
-                    .build();
+            if (existingAdmin.isEmpty()) {
+                log.info("🚀 Seeding initial ADMIN user...");
+                User admin = User.builder()
+                        .name("Administrator")
+                        .email(adminEmail)
+                        .passwordHash(securityPort.encodePassword("Admin@123"))
+                        .role(Role.ADMIN)
+                        .enabled(true)
+                        .createdAt(Instant.now())
+                        .build();
 
-            userRepository.save(admin);
-            log.info("✅ Admin user seeded successfully! Email: {} | Password: Admin@123", adminEmail);
-        } else {
-            log.info("✅ Admin user already exists. Skipping seed.");
+                userRepository.save(admin);
+                log.info("✅ Admin user seeded successfully! Email: {} | Password: Admin@123", adminEmail);
+            } else {
+                log.info("✅ Admin user already exists. Skipping seed.");
+            }
+        } catch (Exception e) {
+            log.error("⚠️ Failed to seed admin user. Error: {}", e.getMessage(), e);
         }
     }
 }

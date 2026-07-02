@@ -29,6 +29,7 @@ public class PopulateSystemService implements PopulateSystemUseCase {
     private final UserRepositoryPort userRepository;
     private final SolicitationDomainService domainService;
     private final SecurityPort securityPort;
+    private final com.challenge.backend.application.port.out.ElasticsearchPort elasticsearch;
 
     @Override
     @Transactional
@@ -49,6 +50,11 @@ public class PopulateSystemService implements PopulateSystemUseCase {
             // 3. Criar Solicitações
             List<Solicitation> solicitations = createSolicitations(clients, analysts);
             result.put("solicitations_created", solicitations.size());
+            
+            // 4. Indexar no Elasticsearch
+            for (Solicitation sol : solicitations) {
+                elasticsearch.indexSolicitation(sol);
+            }
             
             result.put("success", true);
             result.put("message", "✅ Sistema populado com sucesso!");

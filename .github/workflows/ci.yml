@@ -20,8 +20,15 @@ jobs:
         distribution: 'temurin'
         cache: maven
         
+    - name: Configure sysctl limits for Elasticsearch
+      run: sudo sysctl -w vm.max_map_count=262144
+        
     - name: Run Tests & Generate Jacoco Report
-      run: ./mvnw -B verify
+      run: mvn -B verify
+      
+    - name: Print Test Error Logs
+      if: failure()
+      run: cat target/surefire-reports/*.txt
       
     - name: Upload Jacoco Coverage Report
       uses: actions/upload-artifact@v4
