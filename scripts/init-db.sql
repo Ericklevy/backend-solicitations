@@ -1,12 +1,6 @@
 -- Criar extensões
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Criar esquema
-CREATE SCHEMA IF NOT EXISTS challenge;
-
--- Definir schema padrão
-SET search_path TO challenge;
-
 -- Criar tabela de usuários
 CREATE TABLE IF NOT EXISTS users (
                                      id BIGSERIAL PRIMARY KEY,
@@ -56,12 +50,27 @@ CREATE TABLE IF NOT EXISTS solicitations (
                                              FOREIGN KEY (analyzed_by) REFERENCES users(id)
 );
 
+-- Criar tabela de auditoria (NOVA!)
+CREATE TABLE IF NOT EXISTS audit_logs (
+                                          id BIGSERIAL PRIMARY KEY,
+                                          action VARCHAR(100) NOT NULL,
+                                          user_id VARCHAR(100) NOT NULL,
+                                          user_role VARCHAR(50),
+                                          entity_id BIGINT,
+                                          duration_ms BIGINT,
+                                          success BOOLEAN NOT NULL,
+                                          error_message VARCHAR(1000),
+                                          timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Criar índices
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_solicitations_client_id ON solicitations(client_id);
-CREATE INDEX idx_solicitations_status ON solicitations(status);
-CREATE INDEX idx_solicitations_state ON solicitations(state);
-CREATE INDEX idx_solicitations_created_at ON solicitations(created_at);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_solicitations_client_id ON solicitations(client_id);
+CREATE INDEX IF NOT EXISTS idx_solicitations_status ON solicitations(status);
+CREATE INDEX IF NOT EXISTS idx_solicitations_state ON solicitations(state);
+CREATE INDEX IF NOT EXISTS idx_solicitations_created_at ON solicitations(created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(timestamp);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action);
 
 -- Inserir usuário ADMIN inicial (senha: Admin@123)
 INSERT INTO users (name, email, password_hash, role, enabled, created_at)
