@@ -8,6 +8,7 @@ import com.challenge.backend.infrastructure.audit.annotation.Auditable;
 import com.challenge.backend.interfaces.dto.request.CreateUserRequest;
 import com.challenge.backend.interfaces.dto.response.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -34,7 +35,11 @@ public class AdminController {
 
     @PostMapping("/users")
     @Auditable(action = "CREATE_USER")
-    @Operation(summary = "Create a new internal user (ANALYST or ADMIN)")
+    @Operation(
+        summary = "01 - Create a new internal user (ANALYST or ADMIN)",
+        description = "Creates an ANALYST or ADMIN user. For ANALYST, include coverageStates (array of UF codes like ['SP','RJ','MG']). The ID returned here is used in the coverage endpoint below.",
+        operationId = "admin-01-createUser"
+    )
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already registered");
@@ -56,9 +61,13 @@ public class AdminController {
     }
 
     @PutMapping("/users/{id}/coverage")
-    @Operation(summary = "Update analyst coverage states")
+    @Operation(
+        summary = "02 - Update analyst coverage states",
+        description = "Updates which states (UFs) the analyst can work on. The {id} is the USER ID of the ANALYST returned by the 'Create user' endpoint above. Example: if the analyst was created with 'id: 14', use 14 here. Body is a simple JSON array: ['SP','RJ','MG']",
+        operationId = "admin-02-updateCoverage"
+    )
     public ResponseEntity<UserResponse> updateCoverage(
-            @PathVariable Long id,
+            @Parameter(description = "ID of the ANALYST USER (returned by the Create User endpoint). Example: 14") @PathVariable Long id,
             @RequestBody Set<String> states) {
 
         User user = userRepository.findById(id)
@@ -83,15 +92,27 @@ public class AdminController {
     }
 
     @GetMapping("/users")
-    @Operation(summary = "List all users")
+    @Operation(
+        summary = "03 - List all users",
+        description = "Returns all registered users (clients, analysts and admins). No path parameters needed.",
+        operationId = "admin-03-listUsers"
+    )
     public ResponseEntity<List<UserResponse>> listUsers() {
-        // TODO: Implement pagination
-        return ResponseEntity.ok(List.of());
+        List<UserResponse> users = userRepository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .toList();
+        return ResponseEntity.ok(users);
     }
 
     @GetMapping("/users/{id}")
-    @Operation(summary = "Get user by ID")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
+    @Operation(
+        summary = "04 - Get user by ID",
+        description = "Returns details of a single user. The {id} is the USER ID (shown in the list above or returned when the user was created).",
+        operationId = "admin-04-getUserById"
+    )
+    public ResponseEntity<UserResponse> getUserById(
+            @Parameter(description = "ID of the USER to retrieve. Example: 14") @PathVariable Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return ResponseEntity.ok(toResponse(user));

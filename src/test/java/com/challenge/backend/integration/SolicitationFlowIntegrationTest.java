@@ -43,6 +43,14 @@ class SolicitationFlowIntegrationTest {
             .withUsername("test")
             .withPassword("test");
 
+    @SuppressWarnings("resource")
+    @Container
+    static org.testcontainers.elasticsearch.ElasticsearchContainer elasticsearch = 
+            new org.testcontainers.elasticsearch.ElasticsearchContainer("docker.elastic.co/elasticsearch/elasticsearch:8.11.1")
+            .withEnv("xpack.security.enabled", "false")
+            .withEnv("discovery.type", "single-node")
+            .withEnv("ES_JAVA_OPTS", "-Xms512m -Xmx512m");
+
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
@@ -50,7 +58,7 @@ class SolicitationFlowIntegrationTest {
         registry.add("spring.datasource.password", postgres::getPassword);
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
         registry.add("spring.jpa.properties.hibernate.hbm2ddl.create_namespaces", () -> "true");
-        registry.add("spring.elasticsearch.uris", () -> "http://localhost:9201");
+        registry.add("spring.elasticsearch.uris", () -> "http://" + elasticsearch.getHttpHostAddress());
     }
 
     @Autowired

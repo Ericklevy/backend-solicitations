@@ -33,12 +33,16 @@ class PopulateSystemServiceTest {
     @Mock
     private SecurityPort securityPort;
 
+    @Mock
+    private com.challenge.backend.application.port.out.ElasticsearchPort elasticsearch;
+
     @InjectMocks
     private PopulateSystemService service;
 
     @BeforeEach
     void setUp() {
         lenient().when(securityPort.encodePassword(anyString())).thenReturn("encodedPassword");
+        lenient().doNothing().when(elasticsearch).indexSolicitation(any(Solicitation.class));
     }
 
     @Test

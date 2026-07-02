@@ -4,6 +4,8 @@ import com.challenge.backend.domain.model.User;
 import com.challenge.backend.infrastructure.persistence.entity.UserEntity;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
+
 @Component
 public class UserMapper {
     public User toDomain(UserEntity entity) {
@@ -16,6 +18,9 @@ public class UserMapper {
                 .role(entity.getRole())
                 .enabled(entity.isEnabled())
                 .createdAt(entity.getCreatedAt())
+                .coverageStates(entity.getCoverageStates() != null
+                        ? new HashSet<>(entity.getCoverageStates())
+                        : null)
                 .build();
     }
 
@@ -29,6 +34,9 @@ public class UserMapper {
                 .role(domain.getRole())
                 .enabled(domain.isEnabled())
                 .createdAt(domain.getCreatedAt())
+                .coverageStates(domain.getCoverageStates() != null
+                        ? new HashSet<>(domain.getCoverageStates())
+                        : new HashSet<>())
                 .build();
     }
 }

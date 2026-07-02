@@ -14,6 +14,7 @@ import com.challenge.backend.interfaces.dto.response.PageResponse;
 import com.challenge.backend.interfaces.dto.response.SolicitationResponse;
 import com.challenge.backend.interfaces.mapper.SolicitationResponseMapper;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -38,54 +39,14 @@ public class AnalystController {
     private final UserRepositoryPort userRepository;
     private final SolicitationResponseMapper responseMapper;
 
-    @GetMapping("/{id}")
-    @Operation(summary = "Get solicitation by ID (analyst view)")
-    public ResponseEntity<SolicitationResponse> getById(
-            @PathVariable Long id,
-            Authentication authentication) {
-
-        Long analystId = Long.parseLong(authentication.getName());
-        User analyst = userRepository.findById(analystId)
-                .orElseThrow(() -> new RuntimeException("Analyst not found"));
-
-        Solicitation solicitation = domainService.findById(id);
-
-        if (analyst.getCoverageStates() != null &&
-                !analyst.getCoverageStates().contains(solicitation.getState())) {
-            throw new RuntimeException("You don't have coverage for this solicitation's state");
-        }
-
-        return ResponseEntity.ok(responseMapper.toResponse(solicitation));
-    }
-
-    @PostMapping("/{id}/start")
-    @Auditable(action = "START_ANALYSIS")
-    @Operation(summary = "Start analysis of a solicitation")
-    public ResponseEntity<SolicitationResponse> startAnalysis(
-            @PathVariable Long id,
-            Authentication authentication) {
-
-        Long analystId = Long.parseLong(authentication.getName());
-        Solicitation solicitation = analyzeSolicitationUseCase.startAnalysis(id, analystId);
-        return ResponseEntity.ok(responseMapper.toResponse(solicitation));
-    }
-
-    @PostMapping("/{id}/decide")
-    @Auditable(action = "DECIDE_SOLICITATION")
-    @Operation(summary = "Decide on a solicitation (APPROVE/REJECT)")
-    public ResponseEntity<SolicitationResponse> decide(
-            @PathVariable Long id,
-            @Valid @RequestBody DecideRequest request,
-            Authentication authentication) {
-
-        Long analystId = Long.parseLong(authentication.getName());
-        boolean approve = "APPROVE".equalsIgnoreCase(request.getDecision());
-        Solicitation solicitation = analyzeSolicitationUseCase.decide(id, analystId, approve, request.getComment());
-        return ResponseEntity.ok(responseMapper.toResponse(solicitation));
-    }
-
     @GetMapping("/search")
-    @Operation(summary = "Search solicitations with filters")
+    @Operation(
+        summary = "01 - Search solicitations with filters (Elasticsearch)",
+        description = "Searches solicitations using Elasticsearch. The analyst only sees solicitations from states they have coverage for. " +
+                "Available filters: q (text search), status (DRAFT/SUBMITTED/IN_REVIEW/APPROVED/REJECTED), serviceType, priority, state (UF), dateFrom, dateTo. " +
+                "NOTE: This endpoint does NOT require a path {id}. Leave the {id} fields blank.",
+        operationId = "analyst-01-search"
+    )
     public ResponseEntity<PageResponse<SolicitationResponse>> search(
             @RequestParam(required = false) String q,
             @RequestParam(required = false) List<String> status,
@@ -131,5 +92,68 @@ public class AnalystController {
                 .build();
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}")
+    @Operation(
+        summary = "02 - Get solicitation by ID (analyst view)",
+        description = "Returns the full details of a solicitation. The {id} is the SOLICITATION ID (the numeric ID returned by the search endpoint or the populate endpoint). " +
+                "The analyst can only view solicitations from states they have coverage for.",
+        operationId = "analyst-02-getById"
+    )
+    public ResponseEntity<SolicitationResponse> getById(
+            @Parameter(description = "ID of the SOLICITATION (not the analyst). Example: if the search returned a solicitation with 'id: 1', use 1 here.") @PathVariable Long id,
+            Authentication authentication) {
+
+        Long analystId = Long.parseLong(authentication.getName());
+        User analyst = userRepository.findById(analystId)
+                .orElseThrow(() -> new RuntimeException("Analyst not found"));
+
+        Solicitation solicitation = domainService.findById(id);
+
+        if (analyst.getCoverageStates() != null &&
+                !analyst.getCoverageStates().contains(solicitation.getState())) {
+            throw new RuntimeException("You don't have coverage for this solicitation's state");
+        }
+
+        return ResponseEntity.ok(responseMapper.toResponse(solicitation));
+    }
+
+    @PostMapping("/{id}/start")
+    @Auditable(action = "START_ANALYSIS")
+    @Operation(
+        summary = "03 - Start analysis of a solicitation",
+        description = "Changes the solicitation status from SUBMITTED to IN_REVIEW, assigning it to the logged-in analyst. " +
+                "The {id} is the SOLICITATION ID (the numeric ID from the search results). " +
+                "Example: if the search returned 'id: 5', use 5 here.",
+        operationId = "analyst-03-startAnalysis"
+    )
+    public ResponseEntity<SolicitationResponse> startAnalysis(
+            @Parameter(description = "ID of the SOLICITATION to start reviewing. Example: 5") @PathVariable Long id,
+            Authentication authentication) {
+
+        Long analystId = Long.parseLong(authentication.getName());
+        Solicitation solicitation = analyzeSolicitationUseCase.startAnalysis(id, analystId);
+        return ResponseEntity.ok(responseMapper.toResponse(solicitation));
+    }
+
+    @PostMapping("/{id}/decide")
+    @Auditable(action = "DECIDE_SOLICITATION")
+    @Operation(
+        summary = "04 - Decide on a solicitation (APPROVE/REJECT)",
+        description = "Final step: approves or rejects a solicitation that is IN_REVIEW. " +
+                "The {id} is the SOLICITATION ID (same ID used in the 'start' endpoint). " +
+                "Send body: { \"decision\": \"APPROVE\", \"comment\": \"Looks good!\" } or { \"decision\": \"REJECT\", \"comment\": \"Reason here\" }",
+        operationId = "analyst-04-decide"
+    )
+    public ResponseEntity<SolicitationResponse> decide(
+            @Parameter(description = "ID of the SOLICITATION to approve or reject. Must be IN_REVIEW status. Example: 5") @PathVariable Long id,
+            @Valid @RequestBody DecideRequest request,
+            Authentication authentication) {
+
+        Long analystId = Long.parseLong(authentication.getName());
+        boolean approve = "APPROVE".equalsIgnoreCase(request.getDecision());
+        Solicitation solicitation = analyzeSolicitationUseCase.decide(id, analystId, approve, request.getComment());
+        return ResponseEntity.ok(responseMapper.toResponse(solicitation));
     }
 }

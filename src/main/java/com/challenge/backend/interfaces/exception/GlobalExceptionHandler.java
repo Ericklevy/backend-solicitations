@@ -16,7 +16,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = "com.challenge.backend.interfaces")
 @Slf4j
 public class GlobalExceptionHandler {
 

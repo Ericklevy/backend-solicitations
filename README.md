@@ -102,25 +102,41 @@ docker-compose logs -f app
 ```
 
 ### 3. Acessar a Aplicação
-- **API**: http://localhost:8080
-- **Swagger UI**: http://localhost:8080/swagger-ui.html
+- **API**: http://localhost:8081
+- **Swagger UI**: http://localhost:8081/swagger-ui.html
 
-### 4. Popular o sistema com Dados de Exemplo (Extra)
-Para facilitar sua avaliação, existe um endpoint para ambiente `!prod` que gera 8 clientes, 2 analistas e 20 solicitações em vários estados:
+### 4. Teste Rápido via Swagger UI (Passo a Passo)
 
-**Login como ADMIN:**
-```bash
-curl -X POST http://localhost:8080/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"admin@system.com","password":"Admin@123"}'
-```
+Siga este fluxo no Swagger (`http://localhost:8081/swagger-ui.html`) para testar o ciclo de vida completo de uma solicitação.
 
-**Rodar o Endpoint Populate (use o token retornado acima):**
-```bash
-curl -X POST http://localhost:8080/api/populate \
-  -H "Authorization: Bearer SEU_TOKEN_ADMIN" \
-  -H "Content-Type: application/json"
-```
+**A. Popular e Configurar o Sistema (ADMIN)**
+1. **Login:** Abra `POST /auth/login`. Body: `{ "email": "admin@system.com", "password": "Admin@123" }`. Copie o token retornado.
+2. **Autorizar:** Suba a página, clique no botão 🔓 **Authorize**, cole o token e clique em **Authorize**.
+3. **Popular Dados:** Abra `POST /api/populate` e clique em Execute. (Gera 20 solicitações, clientes e analistas).
+4. **Criar Analista:** Abra `POST /api/admin/users`. Body:
+   `{ "name": "Ana Analista", "email": "ana@analista.com", "password": "Senha@123", "role": "ANALYST", "coverageStates": ["SP", "RJ", "MG"] }`
+   ⚠️ **Anote o `id` retornado (ID DO USUÁRIO)**.
+5. **Atualizar Cobertura:** Abra `PUT /api/admin/users/{id}/coverage`. Use o `id` anotado acima e Body `["SP", "RJ", "MG", "RS"]`.
+
+**B. Criar Solicitação (CLIENTE)**
+6. **Logout e Login:** Clique em 🔓 **Authorize** -> Logout. Depois em `POST /auth/register` crie um cliente:
+   `{ "name": "João Cliente", "email": "joao2@cliente.com", "password": "Senha@123" }`. Autorize o Swagger com o novo token retornado.
+7. **Criar Rascunho:** Abra `POST /api/solicitations` (01 - Create). Execute com body vazio `{}`.
+   ⚠️ **Anote o `id` retornado (ID DA SOLICITAÇÃO)**. Use este ID nos próximos passos.
+8. **Step 1:** Abra `PATCH /api/solicitations/{id}/step1`. Body:
+   `{ "serviceType": "INSTALLATION", "title": "Instalar Ar Condicionado", "description": "Instalação na sala de estar, split 12000 BTUs" }`
+9. **Step 2:** Abra `PATCH /api/solicitations/{id}/step2`. O ViaCEP preencherá os outros campos automaticamente! Body:
+   `{ "cep": "01001000", "number": "100", "complement": "Apto 42" }`
+10. **Step 3:** Abra `PATCH /api/solicitations/{id}/step3`. Body:
+    `{ "priority": "HIGH", "preferredDate": "2026-12-01", "estimatedValue": 1500.00, "termsAccepted": true }`
+11. **Submit:** Abra `POST /api/solicitations/{id}/submit` e execute com body vazio. A solicitação agora foi indexada no Elasticsearch.
+
+**C. Analisar Solicitação (ANALISTA)**
+12. **Login:** Logout no botão 🔓 **Authorize**. Em `POST /auth/login`, faça login com o email do analista criado no passo 4 (`ana@analista.com` / `Senha@123`). Autorize com o novo token.
+13. **Buscar:** Abra `GET /api/analyst/solicitations/search` e clique em Execute. O Elasticsearch retornará as solicitações (apenas dos estados que a Ana cobre: SP, RJ, MG, RS).
+14. **Iniciar Análise:** Abra `POST /api/analyst/solicitations/{id}/start` passando o ID DA SOLICITAÇÃO.
+15. **Decidir:** Abra `POST /api/analyst/solicitations/{id}/decide`. Body:
+    `{ "decision": "APPROVED", "comment": "Documentação OK. Aprovado." }`
 
 ---
 

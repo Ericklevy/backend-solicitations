@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users", uniqueConstraints = {
@@ -42,8 +44,14 @@ public class UserEntity {
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "analyst_coverage", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "state")
+    @Builder.Default
+    private Set<String> coverageStates = new HashSet<>();
+
     @PrePersist
     protected void onCreate() {
-        createdAt = Instant.now();
+        if (createdAt == null) createdAt = Instant.now();
     }
 }

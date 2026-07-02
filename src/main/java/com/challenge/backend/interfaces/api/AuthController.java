@@ -7,6 +7,7 @@ import com.challenge.backend.domain.repository.UserRepositoryPort;
 import com.challenge.backend.interfaces.dto.request.AuthRequest;
 import com.challenge.backend.interfaces.dto.request.RegisterRequest;
 import com.challenge.backend.interfaces.dto.response.AuthResponse;
+import com.challenge.backend.interfaces.exception.UnauthorizedException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -59,14 +60,14 @@ public class AuthController {
     @Operation(summary = "Login user")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+                .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
 
         if (!securityPort.validatePassword(request.getPassword(), user.getPasswordHash())) {
-            throw new RuntimeException("Invalid credentials");
+            throw new UnauthorizedException("Invalid credentials");
         }
 
         if (!user.isEnabled()) {
-            throw new RuntimeException("User account is disabled");
+            throw new UnauthorizedException("User account is disabled");
         }
 
         String token = securityPort.generateToken(user);
