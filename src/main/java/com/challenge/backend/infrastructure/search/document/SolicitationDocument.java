@@ -11,7 +11,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import java.time.Instant;
 
-@Document(indexName = "solicitations")
+@Document(indexName = "solicitations", createIndex = false)
 @Data
 @Builder
 @NoArgsConstructor

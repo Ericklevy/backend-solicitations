@@ -201,4 +201,19 @@ public class SolicitationController {
 
         return ResponseEntity.ok(responseMapper.toResponse(solicitation));
     }
+
+    @GetMapping
+    @Operation(
+        summary = "07 - Get all solicitations for the authenticated client",
+        description = "Returns a list of all solicitations belonging to the authenticated client.",
+        operationId = "07-getClientSolicitations"
+    )
+    public ResponseEntity<java.util.List<SolicitationResponse>> getMySolicitations(Authentication authentication) {
+        Long clientId = Long.parseLong(authentication.getName());
+        java.util.List<Solicitation> solicitations = domainService.findByClientId(clientId);
+        java.util.List<SolicitationResponse> response = solicitations.stream()
+                .map(responseMapper::toResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(response);
+    }
 }

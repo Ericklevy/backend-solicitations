@@ -1,0 +1,44 @@
+databases:
+  - name: solicitations-db
+    databaseName: solicitations_db
+    user: admin
+    plan: free
+    region: ohio
+
+services:
+  - type: web
+    name: backend-solicitations-api
+    env: docker
+    plan: free
+    region: ohio
+    dockerContext: .
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: default
+      - key: DB_HOST
+        fromDatabase:
+          name: solicitations-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: solicitations-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: solicitations-db
+          property: database
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: solicitations-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: solicitations-db
+          property: password
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SPRING_ELASTICSEARCH_URIS
+        value: http://change-me-later:9200
+      - key: SPRING_ELASTICSEARCH_API_KEY
+        value: change-me-if-using-elastic-cloud

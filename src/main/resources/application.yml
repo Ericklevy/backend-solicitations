@@ -11,7 +11,7 @@ spring:
     time-zone: America/Sao_Paulo
 
 jwt:
-  secret: 5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437
+  secret: ${JWT_SECRET:5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437}
   expiration: 86400000
 
 management:
@@ -30,9 +30,9 @@ spring:
     activate:
       on-profile: default
   datasource:
-    url: jdbc:postgresql://localhost:5433/solicitations_db
-    username: admin
-    password: admin123
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:solicitations_db}}
+    username: ${SPRING_DATASOURCE_USERNAME:admin}
+    password: ${SPRING_DATASOURCE_PASSWORD:admin123}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -53,7 +53,7 @@ spring:
         order_inserts: true
         order_updates: true
   elasticsearch:
-    uris: http://localhost:9201
+    uris: ${SPRING_ELASTICSEARCH_URIS:http://localhost:9201}
     connection-timeout: 5s
     socket-timeout: 30s
   cache:
@@ -102,9 +102,9 @@ spring:
     activate:
       on-profile: docker
   datasource:
-    url: jdbc:postgresql://postgres:5432/solicitations_db
-    username: admin
-    password: admin123
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${DB_HOST:postgres}:${DB_PORT:5432}/${DB_NAME:solicitations_db}}
+    username: ${SPRING_DATASOURCE_USERNAME:admin}
+    password: ${SPRING_DATASOURCE_PASSWORD:admin123}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -116,7 +116,7 @@ spring:
         default_schema: challenge
         hbm2ddl.create_namespaces: true
   elasticsearch:
-    uris: http://elasticsearch:9200
+    uris: ${SPRING_ELASTICSEARCH_URIS:http://elasticsearch:9200}
     connection-timeout: 5s
     socket-timeout: 30s
   cache:

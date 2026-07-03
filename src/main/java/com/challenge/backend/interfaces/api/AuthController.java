@@ -49,8 +49,10 @@ public class AuthController {
         String token = securityPort.generateToken(saved);
 
         return ResponseEntity.ok(AuthResponse.builder()
+                .id(saved.getId())
                 .token(token)
                 .type("Bearer")
+                .name(saved.getName())
                 .email(saved.getEmail())
                 .role(saved.getRole().name())
                 .build());
@@ -73,8 +75,10 @@ public class AuthController {
         String token = securityPort.generateToken(user);
 
         return ResponseEntity.ok(AuthResponse.builder()
+                .id(user.getId())
                 .token(token)
                 .type("Bearer")
+                .name(user.getName())
                 .email(user.getEmail())
                 .role(user.getRole().name())
                 .build());
