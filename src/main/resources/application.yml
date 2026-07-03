@@ -14,6 +14,16 @@ jwt:
   secret: 5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437
   expiration: 86400000
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
 ---
 spring:
   config:
@@ -58,15 +68,7 @@ logging:
     org.hibernate.SQL: DEBUG
     org.springframework.security: DEBUG
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,prometheus
-  prometheus:
-    metrics:
-      export:
-        enabled: true
+
 
 springdoc:
   api-docs:

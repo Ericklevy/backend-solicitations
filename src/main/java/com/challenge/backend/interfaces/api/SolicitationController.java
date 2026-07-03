@@ -179,14 +179,8 @@ public class SolicitationController {
             Authentication authentication) {
 
         Long clientId = Long.parseLong(authentication.getName());
-        try {
-            Solicitation solicitation = submitSolicitationUseCase.execute(id, clientId);
-            return ResponseEntity.ok(responseMapper.toResponse(solicitation));
-        } catch (BusinessException e) {
-            throw e;
-        } catch (RuntimeException e) {
-            throw new BusinessException(e.getMessage());
-        }
+        Solicitation solicitation = submitSolicitationUseCase.execute(id, clientId);
+        return ResponseEntity.ok(responseMapper.toResponse(solicitation));
     }
 
     @GetMapping("/{id}")
