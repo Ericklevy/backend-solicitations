@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 echo "🚀 Iniciando serviços para desenvolvimento..."
 
