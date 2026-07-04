@@ -219,7 +219,7 @@ Siga este fluxo (local ou em produção) para testar o ciclo de vida completo de
    { "name": "Ana Analista", "email": "ana@analista.com", "password": "Senha@123", "role": "ANALYST", "coverageStates": ["SP", "RJ", "MG"] }
    ```
    ⚠️ Anote o `id` retornado (**ID DO USUÁRIO**).
-5. **Atualizar cobertura** — `PUT /api/admin/users/{id}/coverage`. Use o `id` anotado acima e Body `["SP", "RJ", "MG", "RS"]`.
+5. **Atualizar cobertura** — `PUT /api/admin/users/{id}/coverage`. Use o `id` anotado acima e Body `{ "coverageStates": ["SP", "RJ", "MG", "RS"] }`.
 
 ### B. Criar solicitação (CLIENTE)
 

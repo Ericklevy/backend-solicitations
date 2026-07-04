@@ -68,7 +68,9 @@ public class AdminController {
     )
     public ResponseEntity<UserResponse> updateCoverage(
             @Parameter(description = "ID of the ANALYST USER (returned by the Create User endpoint). Example: 14") @PathVariable Long id,
-            @RequestBody Set<String> states) {
+            @RequestBody com.challenge.backend.interfaces.dto.request.CoverageUpdateRequest request) {
+
+        Set<String> states = request.getEffectiveStates();
 
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
